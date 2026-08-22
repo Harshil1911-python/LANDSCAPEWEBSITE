@@ -23,15 +23,72 @@ document.addEventListener("DOMContentLoaded",()=>{
   const box=document.getElementById("counters");
   if(box&&counters.length){const io=new IntersectionObserver(es=>{if(es.some(e=>e.isIntersecting)){runCounters();io.disconnect();}},{threshold:.2});io.observe(box);}
 
-  // Infinite marquee: duplicate content exactly once so -50% is seamless
-  function prep(id){
-    const el=document.getElementById(id);
-    if(!el||!el.children.length)return;
-    el.innerHTML=el.innerHTML+el.innerHTML;
-    el.classList.add("marquee-track");
+  // Infinite marquee: JS-driven so it always fills the row (even with 1-2 items),
+  // scrolls at a constant fast speed, and supports real click-to-pause.
+  function initMarquee(trackId, wrapId, speed){
+    const track=document.getElementById(trackId);
+    const wrap=document.getElementById(wrapId);
+    if(!track||!wrap||!track.children.length)return;
+
+    track.classList.add("marquee-track");
+    const originalHTML=track.innerHTML;
+    let unitWidth=0, paused=false, x=0, rafId=null, lastTs=null;
+
+    function fill(){
+      // Rebuild with enough copies so ONE "unit" is at least as wide as the wrap.
+      track.innerHTML=originalHTML;
+      let guard=0;
+      while(track.scrollWidth<wrap.clientWidth && guard<25){
+        track.innerHTML+=originalHTML;
+        guard++;
+      }
+      unitWidth=track.scrollWidth;
+      // Add a second copy of the unit so the loop is seamless.
+      track.innerHTML+=track.innerHTML;
+      x=0;
+      track.style.transform="translateX(0px)";
+    }
+
+    function step(ts){
+      if(!lastTs)lastTs=ts;
+      const dt=(ts-lastTs)/1000;
+      lastTs=ts;
+      if(!paused&&unitWidth>0){
+        x-=speed*dt;
+        if(x<=-unitWidth)x+=unitWidth;
+        track.style.transform="translateX("+x+"px)";
+      }
+      rafId=requestAnimationFrame(step);
+    }
+
+    function restart(){
+      cancelAnimationFrame(rafId);
+      lastTs=null;
+      fill();
+      rafId=requestAnimationFrame(step);
+    }
+
+    restart();
+    // Recompute once images (logos etc.) finish loading, and on resize.
+    track.querySelectorAll("img").forEach(img=>{
+      if(!img.complete)img.addEventListener("load",restart,{once:true});
+    });
+    let resizeTimer;
+    window.addEventListener("resize",()=>{
+      clearTimeout(resizeTimer);
+      resizeTimer=setTimeout(restart,200);
+    });
+
+    wrap.addEventListener("mouseenter",()=>paused=true);
+    wrap.addEventListener("mouseleave",()=>paused=false);
+    wrap.addEventListener("click",()=>{paused=!paused;});
+    document.addEventListener("visibilitychange",()=>{
+      if(document.hidden)cancelAnimationFrame(rafId);
+      else{lastTs=null;rafId=requestAnimationFrame(step);}
+    });
   }
-  prep("clients-track");
-  prep("test-track");
+  initMarquee("clients-track","clients-wrap",90);
+  initMarquee("test-track","test-wrap",70);
 
   if("serviceWorker" in navigator)navigator.serviceWorker.getRegistrations().then(r=>r.forEach(x=>x.update()));
 

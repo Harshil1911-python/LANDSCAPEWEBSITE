@@ -1,9 +1,10 @@
 {% extends "base.html" %}
+{% block title %}{{ (s.company_name if s else 'TECHSERENIA') }} Admin{% endblock %}
 {% block content %}
 <div class="min-h-screen bg-white pt-16">
 {% if login %}
 <div class="max-w-md mx-auto mt-20 bg-white p-8 rounded-2xl shadow-xl border">
-  <h1 class="font-display text-2xl text-center mb-2">TECHSERENIA</h1>
+  <h1 class="font-display text-2xl text-center mb-2">{{ s.company_name if s else 'TECHSERENIA' }}</h1>
   <p class="text-center text-slate-500 text-sm mb-6">Admin Login</p>
   {% with messages=get_flashed_messages() %}{% if messages %}<p class="text-red-600 text-center text-sm mb-4">{{ messages[0] }}</p>{% endif %}{% endwith %}
   <form method="POST" class="space-y-4">
@@ -15,9 +16,9 @@
 {% else %}
 <div class="flex min-h-[calc(100vh-64px)]">
   <aside class="w-56 bg-grass-soft border-r border-green-200 shrink-0 sticky top-16 h-[calc(100vh-64px)] overflow-y-auto">
-    <div class="p-5 border-b border-green-200"><div class="font-display text-lg">TECHSERENIA</div><div class="text-xs text-slate-500">Admin</div></div>
+    <div class="p-5 border-b border-green-200"><div class="font-display text-lg">{{ s.company_name }}</div><div class="text-xs text-slate-500">Admin</div></div>
     <nav class="p-3 text-sm space-y-1">
-      {% for tid,label in [('settings','Hero'),('heroimgs','Hero Images'),('intro','About Us'),('contact','Contact'),('visibility','Visibility'),('services','Services'),('gallery','Gallery'),('clients','Clients'),('testimonials','Testimonials'),('faqs','FAQs'),('founder','Founder'),('links','Links'),('images','Photo Manager'),('stats','Counters'),('cta','Form Section'),('email','Email'),('security','Passwords'),('database','Database')] %}
+      {% for tid,label in [('settings','Hero'),('heroimgs','Hero Images'),('intro','About Us'),('contact','Contact'),('visibility','Visibility'),('services','Services'),('gallery','Gallery'),('videos','Work Videos'),('clients','Clients'),('testimonials','Testimonials'),('faqs','FAQs'),('founder','Founder'),('links','Links'),('images','Photo Manager'),('stats','Counters'),('cta','Form Section'),('email','Email'),('security','Passwords'),('database','Database')] %}
       <button type="button" data-tab="{{ tid }}" class="tab-btn w-full text-left px-3 py-2 rounded-lg {% if loop.first %}bg-green-600 text-white font-medium{% else %}text-slate-700 hover:bg-green-100{% endif %}">{{ label }}</button>
       {% endfor %}
       <a href="/" class="block px-3 py-2 rounded-lg text-slate-700 hover:bg-green-100">View Site</a>
@@ -35,6 +36,11 @@
         <div class="grid md:grid-cols-2 gap-4">
           <div><label class="text-sm font-medium">Company Name</label><input name="company_name" value="{{ s.company_name }}" class="w-full border rounded-lg px-3 py-2.5 mt-1"></div>
           <div><label class="text-sm font-medium">Logo</label><input type="file" name="logo" accept="image/*" class="text-sm mt-1 w-full"></div>
+        </div>
+        <div>
+          <label class="text-sm font-medium">Favicon (browser tab icon)</label>
+          <input type="file" name="favicon" accept="image/x-icon,image/png,.ico,.png" class="text-sm mt-1 w-full">
+          {% if s.favicon %}<p class="text-xs text-slate-500 mt-1">Current: {{ s.favicon }}</p>{% endif %}
         </div>
         <div><label class="text-sm font-medium">Hero Title</label><textarea name="hero_title" rows="2" class="w-full border rounded-lg px-3 py-2.5 mt-1">{{ s.hero_title }}</textarea></div>
         <div><label class="text-sm font-medium">Hero Subtitle</label><input name="hero_subtitle" value="{{ s.hero_subtitle }}" class="w-full border rounded-lg px-3 py-2.5 mt-1"></div>
@@ -98,7 +104,7 @@
       <form method="POST" class="bg-grass-soft/50 rounded-xl border p-6 space-y-3 max-w-md">
         <input type="hidden" name="action" value="save_settings"><input type="hidden" name="visibility_form" value="1">
         {% for f in ['company_name','hero_title','hero_subtitle','bg_type','whatsapp','phone','email','address','map_url','instagram','facebook','founder_name','founder_title','founder_desc','stat_projects','stat_years','stat_satisfaction','smtp_sender','smtp_app_pass','smtp_receiver','intro_title','intro_text','intro_badge','intro_badge_label'] %}<input type="hidden" name="{{ f }}" value="{{ s[f] }}">{% endfor %}
-        {% for key,label in [('show_intro','About Us'),('show_services','Services'),('show_about','Counters'),('show_gallery','Gallery'),('show_clients','Prestiged Clients'),('show_founder','Founder'),('show_testimonials','Testimonials'),('show_faqs','FAQs')] %}
+        {% for key,label in [('show_intro','About Us'),('show_services','Services'),('show_about','Counters'),('show_gallery','Gallery'),('show_videos','Work Videos'),('show_clients','Prestiged Clients'),('show_founder','Founder'),('show_testimonials','Testimonials'),('show_faqs','FAQs')] %}
         <label class="flex items-center gap-3 p-2 rounded cursor-pointer"><input type="checkbox" name="{{ key }}" value="1" {% if s[key]|int %}checked{% endif %} class="w-4 h-4"><span>{{ label }}</span></label>
         {% endfor %}
         <button class="bg-green-600 text-white px-6 py-2.5 rounded-lg text-sm">Save</button>
@@ -141,6 +147,25 @@
     </div>
 
     
+    <div id="panel-videos" class="panel hidden">
+      <h2 class="font-display text-2xl mb-5">Work Videos</h2>
+      <form method="POST" enctype="multipart/form-data" class="bg-grass-soft/50 rounded-xl border p-5 space-y-3 mb-5 max-w-3xl">
+        <input type="hidden" name="action" value="add_video">
+        <input type="file" name="work_videos" accept="video/mp4,video/webm,video/quicktime" multiple class="text-sm w-full" required>
+        <input name="caption" placeholder="Caption (optional)" class="w-full border rounded-lg px-3 py-2.5">
+        <button class="bg-sky-600 text-white px-5 py-2 rounded-lg text-sm">Upload Videos</button>
+      </form>
+      <div class="grid grid-cols-2 md:grid-cols-3 gap-3 max-w-3xl">
+        {% for v in videos %}
+        <div class="relative border rounded-xl p-2">
+          <video src="{{ url_for('static',filename='uploads/'+v.filename) }}" class="w-full h-32 object-cover rounded bg-black" controls muted playsinline></video>
+          {% if v.caption %}<p class="text-xs text-slate-500 mt-1 truncate">{{ v.caption }}</p>{% endif %}
+          <form method="POST" class="mt-1"><input type="hidden" name="action" value="delete_video"><input type="hidden" name="id" value="{{ v.id }}"><button class="text-red-500 text-xs">Delete</button></form>
+        </div>
+        {% else %}<p class="text-slate-400">No videos yet.</p>{% endfor %}
+      </div>
+    </div>
+
     <div id="panel-clients" class="panel hidden">
       <h2 class="font-display text-2xl mb-5">Prestiged Clients</h2>
       <form method="POST" enctype="multipart/form-data" class="bg-grass-soft/50 border p-5 space-y-3 mb-5 max-w-3xl">

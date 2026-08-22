@@ -93,12 +93,33 @@
 </section>
 {% endif %}
 
+{% if s.show_videos|int %}
+<section id="work-videos" class="py-20 md:py-28 bg-slate-50">
+  <div class="max-w-[95%] xl:max-w-7xl mx-auto px-3 md:px-5">
+    <div class="text-center mb-14"><h2 class="font-display text-3xl md:text-5xl text-slate-900">Our Work in Motion</h2></div>
+    {% if videos %}
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+      {% for v in videos %}
+      <div class="bg-white overflow-hidden rounded-lg shadow-sm">
+        <video src="{{ url_for('static',filename='uploads/'+v.filename) }}" class="w-full aspect-video object-cover bg-black" controls muted playsinline preload="metadata"></video>
+        {% if v.caption %}<p class="text-sm text-slate-600 p-3">{{ v.caption }}</p>{% endif %}
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-center text-slate-400 text-sm">Videos coming soon.</p>
+    {% endif %}
+  </div>
+</section>
+{% endif %}
+
 
 {% if s.show_clients|int %}
 <section id="clients" class="py-16 md:py-20 bg-slate-50 overflow-hidden">
   <div class="max-w-[95%] xl:max-w-7xl mx-auto px-3 md:px-5 mb-10 text-center">
     <h2 class="font-display text-3xl md:text-4xl text-slate-900">Prestiged Clients</h2>
   </div>
+  {% if clients %}
   <div id="clients-wrap" class="marquee-wrap relative w-full cursor-pointer" title="Click to pause/resume">
     <div id="clients-track" class="flex gap-14 md:gap-20 items-center">
       {% for c in clients %}
@@ -109,6 +130,9 @@
       {% endfor %}
     </div>
   </div>
+  {% else %}
+  <p class="text-center text-slate-400 text-sm">No clients yet.</p>
+  {% endif %}
 </section>
 {% endif %}
 

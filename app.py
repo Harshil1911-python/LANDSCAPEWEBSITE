@@ -9,7 +9,7 @@ app = Flask(__name__)
 app.secret_key = "dubai_landscape_secret_2026"
 UPLOAD = "static/uploads"
 os.makedirs(UPLOAD, exist_ok=True)
-ALLOWED = {"png","jpg","jpeg","gif","webp","mp4","webm","mov"}
+ALLOWED = {"png","jpg","jpeg","gif","webp","ico","mp4","webm","mov"}
 DB_PATH = "database.db"
 
 def db():
@@ -21,7 +21,7 @@ def init_db():
             id INTEGER PRIMARY KEY, company_name TEXT DEFAULT 'TECHSERENIA',
             hero_title TEXT DEFAULT 'Turn Your Dubai Outdoor Space into an Exclusive Oasis',
             hero_subtitle TEXT DEFAULT 'Luxury landscape design and swimming pools by experts',
-            logo TEXT DEFAULT '', bg_type TEXT DEFAULT 'image', bg_file TEXT DEFAULT '',
+            logo TEXT DEFAULT '', bg_type TEXT DEFAULT 'image', bg_file TEXT DEFAULT '', favicon TEXT DEFAULT '',
             whatsapp TEXT DEFAULT '971500000000', phone TEXT DEFAULT '', email TEXT DEFAULT '',
             address TEXT DEFAULT '', map_url TEXT DEFAULT '', instagram TEXT DEFAULT '', facebook TEXT DEFAULT '',
             founder_name TEXT DEFAULT 'Founder Name', founder_title TEXT DEFAULT 'Founder & CEO',
@@ -35,7 +35,7 @@ def init_db():
             intro_text TEXT DEFAULT 'We believe outdoor spaces should be sanctuaries that nurture well-being and celebrate nature.',
             intro_image TEXT DEFAULT '', intro_badge TEXT DEFAULT '6+', intro_badge_label TEXT DEFAULT 'Year Experience',
             show_services INTEGER DEFAULT 1, show_about INTEGER DEFAULT 1, show_founder INTEGER DEFAULT 1,
-            show_testimonials INTEGER DEFAULT 1, show_faqs INTEGER DEFAULT 1, show_gallery INTEGER DEFAULT 1, show_intro INTEGER DEFAULT 1, show_clients INTEGER DEFAULT 1)""")
+            show_testimonials INTEGER DEFAULT 1, show_faqs INTEGER DEFAULT 1, show_gallery INTEGER DEFAULT 1, show_intro INTEGER DEFAULT 1, show_clients INTEGER DEFAULT 1, show_videos INTEGER DEFAULT 1)""")
         cols = [("whatsapp","971500000000"),("phone",""),("email",""),("address",""),("map_url",""),("instagram",""),("facebook",""),
             ("founder_name","Founder Name"),("founder_title","Founder & CEO"),("founder_desc","Passionate about creating beautiful outdoor spaces across Dubai."),
             ("founder_image",""),("services_bg",""),("admin_pass",""),("delete_pass",""),
@@ -44,7 +44,7 @@ def init_db():
             ("intro_title","Green Space Landscaping Services"),
             ("intro_text","We believe outdoor spaces should be sanctuaries that nurture well-being and celebrate nature."),
             ("intro_image",""),("intro_badge","6+"),("intro_badge_label","Year Experience"),
-            ("show_services","1"),("show_about","1"),("show_founder","1"),("show_testimonials","1"),("show_faqs","1"),("show_gallery","1"),("show_intro","1"),("show_clients","1")]
+            ("show_services","1"),("show_about","1"),("show_founder","1"),("show_testimonials","1"),("show_faqs","1"),("show_gallery","1"),("show_intro","1"),("show_clients","1"),("show_videos","1"),("favicon","")]
         for col,d in cols:
             try:
                 c.execute(f"SELECT {col} FROM settings LIMIT 1")
@@ -56,7 +56,7 @@ def init_db():
                     try: c.execute(f"ALTER TABLE settings ADD COLUMN {col} TEXT DEFAULT ''")
                     except Exception: pass
         # force-add critical columns if missing
-        for col in ("cta_bg","form_title","form_subtitle","form_heading","counters_bg","faq_image","faq_heading","stat_team","stat_happy","stat_reviews","show_clients","services_bg","intro_image"):
+        for col in ("cta_bg","form_title","form_subtitle","form_heading","counters_bg","faq_image","faq_heading","stat_team","stat_happy","stat_reviews","show_clients","services_bg","intro_image","show_videos","favicon"):
             try: c.execute(f"SELECT {col} FROM settings LIMIT 1")
             except Exception:
                 try: c.execute(f"ALTER TABLE settings ADD COLUMN {col} TEXT DEFAULT ''")
@@ -69,7 +69,8 @@ def init_db():
             "CREATE TABLE IF NOT EXISTS testimonials (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, role TEXT DEFAULT '', content TEXT, rating INTEGER DEFAULT 5)",
             "CREATE TABLE IF NOT EXISTS faqs (id INTEGER PRIMARY KEY AUTOINCREMENT, question TEXT, answer TEXT)",
             "CREATE TABLE IF NOT EXISTS external_links (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT, url TEXT)",
-            "CREATE TABLE IF NOT EXISTS clients (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT DEFAULT '', logo TEXT)"]:
+            "CREATE TABLE IF NOT EXISTS clients (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT DEFAULT '', logo TEXT)",
+            "CREATE TABLE IF NOT EXISTS work_videos (id INTEGER PRIMARY KEY AUTOINCREMENT, filename TEXT, caption TEXT DEFAULT '')"]:
             c.execute(sql)
         if not c.execute("SELECT 1 FROM settings").fetchone():
             c.execute("INSERT INTO settings (id, admin_pass) VALUES (1, ?)", (generate_password_hash("admin123"),))
@@ -95,7 +96,7 @@ init_db()
 
 
 def ensure_settings_cols():
-    need = ["cta_bg","form_title","form_subtitle","form_heading","counters_bg","faq_image","faq_heading","stat_team","stat_happy","stat_reviews","show_clients","services_bg","intro_image","intro_title","intro_text","intro_badge","intro_badge_label"]
+    need = ["cta_bg","form_title","form_subtitle","form_heading","counters_bg","faq_image","faq_heading","stat_team","stat_happy","stat_reviews","show_clients","services_bg","intro_image","intro_title","intro_text","intro_badge","intro_badge_label","show_videos","favicon"]
     with db() as c:
         for col in need:
             try: c.execute(f"SELECT {col} FROM settings LIMIT 1")
@@ -142,6 +143,8 @@ def get_links():
     with db() as c: return [dict(r) for r in c.execute("SELECT * FROM external_links ORDER BY id")]
 def get_clients():
     with db() as c: return [dict(r) for r in c.execute("SELECT * FROM clients ORDER BY id")]
+def get_videos():
+    with db() as c: return [dict(r) for r in c.execute("SELECT * FROM work_videos ORDER BY id DESC")]
 def all_images():
     imgs=[]
     with db() as c:
@@ -169,7 +172,7 @@ def send_quote_email(name, phone, email, location, message):
 @app.route("/")
 def index():
     return render_template("index.html", s=gs(), services=get_services(), testimonials=get_testimonials(),
-        faqs=get_faqs(), links=get_links(), hero_images=get_hero_images(), gallery=get_gallery(), clients=get_clients())
+        faqs=get_faqs(), links=get_links(), hero_images=get_hero_images(), gallery=get_gallery(), clients=get_clients(), videos=get_videos())
 
 @app.route("/services/<int:sid>")
 def service_detail(sid):
@@ -197,6 +200,16 @@ def api_quote():
 def manifest(): return send_file("static/manifest.json", mimetype="application/manifest+json")
 @app.route("/sw.js")
 def sw(): return send_file("static/sw.js", mimetype="application/javascript")
+@app.route("/favicon.ico")
+def favicon():
+    s=gs(); fav=s.get("favicon") or ""
+    path=os.path.join(UPLOAD, fav) if fav and os.path.exists(os.path.join(UPLOAD, fav)) else None
+    if not path:
+        path=os.path.join(UPLOAD, "icon-192.png") if os.path.exists(os.path.join(UPLOAD, "icon-192.png")) else None
+    if not path: return ("", 204)
+    ext=path.rsplit(".",1)[-1].lower()
+    mime="image/x-icon" if ext=="ico" else ("image/png" if ext=="png" else "image/"+ext)
+    return send_file(path, mimetype=mime)
 
 @app.route("/admin", methods=["GET","POST"])
 def admin():
@@ -205,7 +218,7 @@ def admin():
             session["admin"]=True; return redirect(url_for("admin"))
         flash("Wrong password")
     if not session.get("admin"):
-        return render_template("admin.html", login=True, s=None, services=[], testimonials=[], faqs=[], links=[], hero_images=[], gallery=[], clients=[], all_imgs=[])
+        return render_template("admin.html", login=True, s=gs(), services=[], testimonials=[], faqs=[], links=[], hero_images=[], gallery=[], clients=[], all_imgs=[], videos=[])
 
     if request.method=="POST":
         act=request.form.get("action")
@@ -219,13 +232,13 @@ def admin():
             d["whatsapp"]=d["whatsapp"].replace("+","").replace(" ","").replace("-","")
             d["map_url"]=extract_map_src(d["map_url"])
             if not d["smtp_app_pass"]: d["smtp_app_pass"]=gs().get("smtp_app_pass") or ""
-            vis_keys=["show_services","show_about","show_founder","show_testimonials","show_faqs","show_gallery","show_intro","show_clients"]
+            vis_keys=["show_services","show_about","show_founder","show_testimonials","show_faqs","show_gallery","show_intro","show_clients","show_videos"]
             vis={k:1 if request.form.get(k) in ("1","on") else 0 for k in vis_keys}
             if not request.form.get("visibility_form"):
                 s0=gs()
                 for k in vis: vis[k]=int(s0.get(k) or 1)
-            logo,bg,fi,sbg,ii,cbg,fiq,cta=gs().get("logo",""),gs().get("bg_file",""),gs().get("founder_image",""),gs().get("services_bg",""),gs().get("intro_image",""),gs().get("counters_bg",""),gs().get("faq_image",""),gs().get("cta_bg","")
-            for field,var in [("logo","logo"),("bg_file","bg"),("founder_image","fi"),("services_bg","sbg"),("intro_image","ii"),("counters_bg","cbg"),("faq_image","fiq"),("cta_bg","cta")]:
+            logo,bg,fi,sbg,ii,cbg,fiq,cta,fav=gs().get("logo",""),gs().get("bg_file",""),gs().get("founder_image",""),gs().get("services_bg",""),gs().get("intro_image",""),gs().get("counters_bg",""),gs().get("faq_image",""),gs().get("cta_bg",""),gs().get("favicon","")
+            for field,var in [("logo","logo"),("bg_file","bg"),("founder_image","fi"),("services_bg","sbg"),("intro_image","ii"),("counters_bg","cbg"),("faq_image","fiq"),("cta_bg","cta"),("favicon","fav")]:
                 if field in request.files and request.files[field].filename:
                     f=request.files[field]
                     if f.filename.rsplit(".",1)[-1].lower() in ALLOWED:
@@ -238,22 +251,23 @@ def admin():
                         elif field=="counters_bg": cbg=fname
                         elif field=="faq_image": fiq=fname
                         elif field=="cta_bg": cta=fname
+                        elif field=="favicon": fav=fname
                         else: pass
             with db() as c:
-                c.execute("""UPDATE settings SET company_name=?,hero_title=?,hero_subtitle=?,logo=?,bg_type=?,bg_file=?,
+                c.execute("""UPDATE settings SET company_name=?,hero_title=?,hero_subtitle=?,logo=?,bg_type=?,bg_file=?,favicon=?,
                     whatsapp=?,phone=?,email=?,address=?,map_url=?,instagram=?,facebook=?,
                     founder_name=?,founder_title=?,founder_desc=?,founder_image=?,services_bg=?,
                     stat_projects=?,stat_years=?,stat_satisfaction=?,stat_team=?,stat_happy=?,stat_reviews=?,counters_bg=?,faq_image=?,faq_heading=?,cta_bg=?,form_title=?,form_subtitle=?,form_heading=?,
                     smtp_sender=?,smtp_app_pass=?,smtp_receiver=?,
                     intro_title=?,intro_text=?,intro_image=?,intro_badge=?,intro_badge_label=?,
-                    show_services=?,show_about=?,show_founder=?,show_testimonials=?,show_faqs=?,show_gallery=?,show_intro=?,show_clients=? WHERE id=1""",
-                    (d["company_name"],d["hero_title"],d["hero_subtitle"],logo,d["bg_type"],bg,
+                    show_services=?,show_about=?,show_founder=?,show_testimonials=?,show_faqs=?,show_gallery=?,show_intro=?,show_clients=?,show_videos=? WHERE id=1""",
+                    (d["company_name"],d["hero_title"],d["hero_subtitle"],logo,d["bg_type"],bg,fav,
                      d["whatsapp"],d["phone"],d["email"],d["address"],d["map_url"],d["instagram"],d["facebook"],
                      d["founder_name"],d["founder_title"],d["founder_desc"],fi,sbg,
                      d["stat_projects"],d["stat_years"],d["stat_satisfaction"],d["stat_team"],d["stat_happy"],d["stat_reviews"],cbg,fiq,d.get("faq_heading",""),cta,d.get("form_title",""),d.get("form_subtitle",""),d.get("form_heading",""),
                      d["smtp_sender"],d["smtp_app_pass"],d["smtp_receiver"],
                      d["intro_title"],d["intro_text"],ii,d["intro_badge"],d["intro_badge_label"],
-                     vis["show_services"],vis["show_about"],vis["show_founder"],vis["show_testimonials"],vis["show_faqs"],vis["show_gallery"],vis["show_intro"],vis["show_clients"]))
+                     vis["show_services"],vis["show_about"],vis["show_founder"],vis["show_testimonials"],vis["show_faqs"],vis["show_gallery"],vis["show_intro"],vis["show_clients"],vis["show_videos"]))
             flash("Saved")
         elif act=="add_hero_images":
             with db() as c:
@@ -273,6 +287,15 @@ def admin():
             flash("Gallery photos added")
         elif act=="delete_gallery":
             with db() as c: c.execute("DELETE FROM gallery WHERE id=?",(request.form.get("id"),)); flash("Deleted")
+        elif act=="add_video":
+            with db() as c:
+                for f in request.files.getlist("work_videos"):
+                    if f and f.filename and f.filename.rsplit(".",1)[-1].lower() in ("mp4","webm","mov"):
+                        fname=secure_filename(f.filename); f.save(os.path.join(UPLOAD,fname))
+                        c.execute("INSERT INTO work_videos (filename,caption) VALUES (?,?)",(fname,request.form.get("caption","")))
+            flash("Videos added")
+        elif act=="delete_video":
+            with db() as c: c.execute("DELETE FROM work_videos WHERE id=?",(request.form.get("id"),)); flash("Deleted")
         elif act=="delete_image":
             t,iid=request.form.get("itype"),request.form.get("id")
             with db() as c:
@@ -381,7 +404,7 @@ def admin():
         hero_imgs=[dict(r) for r in c.execute("SELECT id,filename FROM hero_images ORDER BY id")]
     return render_template("admin.html", login=False, s=gs(), services=get_services(),
         testimonials=get_testimonials(), faqs=get_faqs(), links=get_links(),
-        hero_images=hero_imgs, gallery=get_gallery(), clients=get_clients(), all_imgs=all_images())
+        hero_images=hero_imgs, gallery=get_gallery(), clients=get_clients(), all_imgs=all_images(), videos=get_videos())
 
 @app.route("/logout")
 def logout():
