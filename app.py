@@ -70,8 +70,12 @@ def init_db():
             "CREATE TABLE IF NOT EXISTS faqs (id INTEGER PRIMARY KEY AUTOINCREMENT, question TEXT, answer TEXT)",
             "CREATE TABLE IF NOT EXISTS external_links (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT, url TEXT)",
             "CREATE TABLE IF NOT EXISTS clients (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT DEFAULT '', logo TEXT)",
-            "CREATE TABLE IF NOT EXISTS work_videos (id INTEGER PRIMARY KEY AUTOINCREMENT, filename TEXT, caption TEXT DEFAULT '')"]:
+            "CREATE TABLE IF NOT EXISTS work_videos (id INTEGER PRIMARY KEY AUTOINCREMENT, filename TEXT DEFAULT '', youtube_id TEXT DEFAULT '', caption TEXT DEFAULT '')"]:
             c.execute(sql)
+        try: c.execute("SELECT youtube_id FROM work_videos LIMIT 1")
+        except Exception:
+            try: c.execute("ALTER TABLE work_videos ADD COLUMN youtube_id TEXT DEFAULT ''")
+            except Exception: pass
         if not c.execute("SELECT 1 FROM settings").fetchone():
             c.execute("INSERT INTO settings (id, admin_pass) VALUES (1, ?)", (generate_password_hash("admin123"),))
         else:
@@ -114,6 +118,13 @@ def check_admin_pass(pw):
 def extract_map_src(val):
     if not val: return ""
     m=re.search(r'src=["\']([^"\']+)["\']', val); return m.group(1) if m else val.strip()
+def extract_youtube_id(url):
+    if not url: return ""
+    url=url.strip()
+    m=re.search(r'(?:youtu\.be/|youtube\.com/(?:watch\?v=|embed/|shorts/|v/))([A-Za-z0-9_-]{11})', url)
+    if m: return m.group(1)
+    if re.fullmatch(r'[A-Za-z0-9_-]{11}', url): return url
+    return ""
 def get_hero_images():
     with db() as c:
         rows=[r["filename"] for r in c.execute("SELECT filename FROM hero_images ORDER BY id")]
@@ -211,7 +222,7 @@ def favicon():
     mime="image/x-icon" if ext=="ico" else ("image/png" if ext=="png" else "image/"+ext)
     return send_file(path, mimetype=mime)
 
-@app.route("/admin", methods=["GET","POST"])
+@app.route("/techserenia", methods=["GET","POST"])
 def admin():
     if request.method=="POST" and "password" in request.form and not session.get("admin"):
         if check_admin_pass(request.form.get("password","")):
@@ -292,8 +303,16 @@ def admin():
                 for f in request.files.getlist("work_videos"):
                     if f and f.filename and f.filename.rsplit(".",1)[-1].lower() in ("mp4","webm","mov"):
                         fname=secure_filename(f.filename); f.save(os.path.join(UPLOAD,fname))
-                        c.execute("INSERT INTO work_videos (filename,caption) VALUES (?,?)",(fname,request.form.get("caption","")))
+                        c.execute("INSERT INTO work_videos (filename,youtube_id,caption) VALUES (?,?,?)",(fname,"",request.form.get("caption","")))
             flash("Videos added")
+        elif act=="add_youtube_video":
+            yid=extract_youtube_id(request.form.get("youtube_url",""))
+            if yid:
+                with db() as c:
+                    c.execute("INSERT INTO work_videos (filename,youtube_id,caption) VALUES (?,?,?)",("",yid,request.form.get("caption","")))
+                flash("YouTube video added")
+            else:
+                flash("Couldn't read a YouTube link from that")
         elif act=="delete_video":
             with db() as c: c.execute("DELETE FROM work_videos WHERE id=?",(request.form.get("id"),)); flash("Deleted")
         elif act=="delete_image":
