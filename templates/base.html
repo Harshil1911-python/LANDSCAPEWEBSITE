@@ -34,7 +34,7 @@ input,textarea,select{user-select:text;-webkit-user-select:text}
     <div class="loader-brand">{{ s.company_name if s and s.company_name else 'TECHSERENIA' }}</div>
       </div>
 </div>
-<header class="fixed top-0 inset-x-0 z-50 bg-black">
+<header class="fixed top-0 inset-x-0 z-50 bg-transparent">
   <div class="max-w-7xl mx-auto flex items-center justify-between px-4 md:px-10 h-[4.5rem] md:h-28">
     <a href="/#home" class="flex items-center gap-2 md:gap-3 min-w-0">
       {% if s and s.logo %}<img src="{{ url_for('static',filename='uploads/'+s.logo) }}" class="h-12 sm:h-14 md:h-20 w-auto max-w-[min(70vw,420px)] object-contain object-left" alt="">{% endif %}
@@ -50,7 +50,7 @@ input,textarea,select{user-select:text;-webkit-user-select:text}
     </nav>
     <button id="mobile-menu-btn" class="md:hidden text-white p-2" aria-label="Menu"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg></button>
   </div>
-  <div id="mobile-menu" class="hidden md:hidden bg-black border-t border-white/10">
+  <div id="mobile-menu" class="hidden md:hidden bg-black/90 border-t border-white/10">
     <div class="flex flex-col px-6 py-4 gap-3 text-sm text-white/90">
       <a href="/#home">Home</a><a href="/#services">Services</a>
       <a href="/#about-us">About</a><a href="/#testimonials">Testimonials</a><a href="/#faqs">FAQs</a><a href="/#consult">Contact</a>
