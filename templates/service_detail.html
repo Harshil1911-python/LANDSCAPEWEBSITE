@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="pt-28 pb-20 min-h-screen bg-white">
+  <div class="max-w-5xl mx-auto px-6 md:px-10">
+    <a href="/#services" class="text-grass-dark hover:text-grass text-sm mb-8 inline-block">← Back to Services</a>
+    {% if service.images %}
+    <div class="swiper service-swiper rounded-2xl overflow-hidden mb-10 shadow-md">
+      <div class="swiper-wrapper">{% for img in service.images %}<div class="swiper-slide"><div class="aspect-video bg-grass-soft"><img src="{{ url_for('static',filename='uploads/'+img.filename) }}" class="w-full h-full object-cover" alt=""></div></div>{% endfor %}</div>
+      <div class="swiper-pagination"></div><div class="swiper-button-prev"></div><div class="swiper-button-next"></div>
+    </div>
+    {% endif %}
+    <h1 class="font-display text-4xl md:text-5xl text-slate-900 mb-4">{{ service.title }}</h1>
+    <p class="text-grass-dark text-lg mb-8">{{ service.short_desc }}</p>
+    <div class="text-slate-600 leading-relaxed whitespace-pre-line">{{ service.full_desc }}</div>
+    <div class="mt-12"><a href="/#contact" class="inline-block bg-grass hover:bg-grass-dark text-white px-8 py-3.5 rounded-lg font-medium">Enquire About This Service</a></div>
+  </div>
+</section>
+<script>document.addEventListener("DOMContentLoaded",()=>{if(document.querySelector(".service-swiper"))new Swiper(".service-swiper",{loop:true,pagination:{el:".swiper-pagination",clickable:true},navigation:{nextEl:".swiper-button-next",prevEl:".swiper-button-prev"},autoplay:{delay:4000}})})</script>
+{% endblock %}

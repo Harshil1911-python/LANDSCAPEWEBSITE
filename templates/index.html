@@ -1,0 +1,257 @@
+{% extends "base.html" %}
+{% block content %}
+<section id="home" class="relative h-screen w-full overflow-hidden">
+  {% if s.bg_type=='video' and s.bg_file %}
+  <video autoplay muted loop playsinline class="absolute inset-0 w-full h-full object-cover"><source src="{{ url_for('static',filename='uploads/'+s.bg_file) }}" type="video/mp4"></video>
+  {% elif hero_images %}
+  <div class="absolute inset-0">{% for img in hero_images %}<img src="{{ url_for('static',filename='uploads/'+img) }}" class="hero-slide absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 {% if loop.first %}opacity-100{% else %}opacity-0{% endif %}" alt="">{% endfor %}</div>
+  {% else %}<div class="absolute inset-0 bg-gradient-to-br from-emerald-800 to-sky-700"></div>{% endif %}
+  <div class="hero-overlay absolute inset-0"></div>
+  <div class="relative z-10 h-full flex flex-col items-center justify-center text-center px-6 pt-16">
+    <h1 id="hero-title" class="font-display text-4xl sm:text-5xl md:text-6xl lg:text-7xl leading-tight mb-6 opacity-0 text-white max-w-4xl">{{ s.hero_title }}</h1>
+    <p id="hero-sub" class="text-lg md:text-xl text-white/85 max-w-2xl mb-10 opacity-0">{{ s.hero_subtitle }}</p>
+    <div id="hero-btns" class="flex flex-wrap gap-4 justify-center opacity-0">
+      <a href="#" id="open-quote" class="bg-grass hover:bg-grass-dark text-white px-8 py-3.5 font-medium">Get Free Quote</a>
+      <a href="#services" class="border border-white/50 hover:bg-white/15 text-white px-8 py-3.5 font-medium">Our Services</a>
+    </div>
+  </div>
+</section>
+
+{% if s.show_intro|int %}
+<section id="about-us" class="bg-white min-h-screen flex items-center py-8 md:py-0">
+  <div class="w-full max-w-[95%] xl:max-w-7xl mx-auto px-3 md:px-5">
+    <div class="grid md:grid-cols-2 gap-0 border border-slate-100 overflow-hidden min-h-[70vh] md:min-h-[80vh]">
+      <div class="relative min-h-[300px] md:min-h-full">
+        {% if s.intro_image %}<img src="{{ url_for('static',filename='uploads/'+s.intro_image) }}" class="absolute inset-0 w-full h-full object-cover" alt="">
+        {% else %}<div class="absolute inset-0 bg-grass-soft"></div>{% endif %}
+      </div>
+      <div class="flex flex-col justify-center p-8 md:p-12 lg:p-14 bg-white">
+        <h2 class="font-display text-3xl md:text-4xl lg:text-5xl text-slate-900 leading-tight mb-5">{{ s.intro_title }}</h2>
+        <p class="text-slate-600 leading-relaxed mb-8 text-sm md:text-base">{{ s.intro_text }}</p>
+        <div class="mb-8">
+          <div class="text-5xl md:text-6xl font-bold text-slate-900"><span class="counter-years" data-target="{{ s.stat_years }}">{{ s.stat_years }}</span>+</div>
+          <div class="text-xs tracking-widest text-slate-500 uppercase mt-1">Year Experience</div>
+        </div>
+        <div class="flex flex-wrap items-center gap-4">
+          <a href="#services" class="bg-slate-900 hover:bg-slate-800 text-white px-6 py-3 text-sm font-medium">Learn More</a>
+          {% if s.phone %}<a href="tel:{{ s.phone }}" class="text-slate-700 text-sm font-medium">{{ s.phone }}</a>{% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+{% if s.show_services|int %}
+<section id="services" class="relative py-20 md:py-28 overflow-hidden">
+  {% if s.services_bg %}<img src="{{ url_for('static',filename='uploads/'+s.services_bg) }}" class="absolute inset-0 w-full h-full object-cover" alt="">
+  {% else %}<div class="absolute inset-0 bg-white"></div>{% endif %}
+  <div class="relative z-10 max-w-[95%] xl:max-w-7xl mx-auto px-3 md:px-5">
+    <div class="text-center mb-14"><h2 class="font-display text-3xl md:text-5xl {% if s.services_bg %}text-white drop-shadow{% else %}text-slate-900{% endif %}">Our Services</h2></div>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+      {% for svc in services %}
+      <a href="{{ url_for('service_detail',sid=svc.id) }}" class="group block bg-white border border-slate-100 overflow-hidden shadow-sm hover:shadow-md transition">
+        <div class="aspect-[4/3] bg-grass-soft overflow-hidden">
+          {% if svc.images %}<img src="{{ url_for('static',filename='uploads/'+svc.images[0]) }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" alt="">
+          {% else %}<div class="w-full h-full flex items-center justify-center text-slate-400 text-sm">No image</div>{% endif %}
+        </div>
+        <div class="p-6"><h3 class="font-display text-xl text-grass-dark mb-2">{{ svc.title }}</h3><p class="text-slate-500 text-sm">{{ svc.short_desc }}</p></div>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+{% if s.show_about|int %}
+<section id="about" class="relative py-16 md:py-24 overflow-hidden">
+  {% if s.counters_bg %}<img src="{{ url_for('static',filename='uploads/'+s.counters_bg) }}" class="absolute inset-0 w-full h-full object-cover" alt=""><div class="absolute inset-0 bg-black/50"></div>
+  {% else %}<div class="absolute inset-0 bg-black"></div>{% endif %}
+  <div id="counters" class="relative z-10 max-w-6xl mx-auto px-5 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-8 text-center">
+    <div><div class="text-3xl md:text-4xl font-bold text-white mb-2"><span class="counter" data-target="{{ s.stat_projects or 150 }}">0</span>+</div><div class="text-xs text-white/80">Projects</div></div>
+    <div><div class="text-3xl md:text-4xl font-bold text-white mb-2"><span class="counter" data-target="{{ s.stat_years or 12 }}">0</span>+</div><div class="text-xs text-white/80">Years</div></div>
+    <div><div class="text-3xl md:text-4xl font-bold text-white mb-2"><span class="counter" data-target="{{ s.stat_satisfaction or 98 }}">0</span>%</div><div class="text-xs text-white/80">Satisfaction</div></div>
+    <div><div class="text-3xl md:text-4xl font-bold text-white mb-2"><span class="counter" data-target="{{ s.stat_team or 25 }}">0</span>+</div><div class="text-xs text-white/80">Team Members</div></div>
+    <div><div class="text-3xl md:text-4xl font-bold text-white mb-2"><span class="counter" data-target="{{ s.stat_happy or 200 }}">0</span>+</div><div class="text-xs text-white/80">Happy Clients</div></div>
+    <div><div class="text-3xl md:text-4xl font-bold text-white mb-2"><span class="counter" data-target="{{ s.stat_reviews or 180 }}">0</span>+</div><div class="text-xs text-white/80">Reviews</div></div>
+  </div>
+</section>
+{% endif %}
+
+{% if s.show_gallery|int %}
+<section id="gallery" class="py-20 md:py-28 bg-white">
+  <div class="max-w-[95%] xl:max-w-7xl mx-auto px-3 md:px-5">
+    <div class="text-center mb-14"><h2 class="font-display text-3xl md:text-5xl text-slate-900">Our Work</h2></div>
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-3">
+      {% for g in gallery %}
+      <div class="aspect-square overflow-hidden bg-white">
+        <img src="{{ url_for('static',filename='uploads/'+g.filename) }}" class="w-full h-full object-cover hover:scale-105 transition duration-500" alt="{{ g.caption }}">
+      </div>
+      {% else %}<p class="col-span-full text-center text-slate-400">Gallery coming soon.</p>{% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+
+{% if s.show_clients|int %}
+<section id="clients" class="py-16 md:py-20 bg-slate-50 overflow-hidden">
+  <div class="max-w-[95%] xl:max-w-7xl mx-auto px-3 md:px-5 mb-10 text-center">
+    <h2 class="font-display text-3xl md:text-4xl text-slate-900">Prestiged Clients</h2>
+  </div>
+  <div id="clients-wrap" class="marquee-wrap relative w-full cursor-pointer" title="Click to pause/resume">
+    <div id="clients-track" class="flex gap-14 md:gap-20 items-center">
+      {% for c in clients %}
+      <div class="shrink-0 w-44 h-28 md:w-56 md:h-36 flex items-center justify-center px-4">
+        {% if c.logo %}<img src="{{ url_for('static',filename='uploads/'+c.logo) }}" class="max-h-full max-w-full object-contain" alt="{{ c.name }}">
+        {% else %}<span class="text-slate-400 text-sm">{{ c.name }}</span>{% endif %}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+{% if s.show_founder|int %}
+<section id="founder" class="bg-white py-16 md:py-24 min-h-[80vh] flex items-center">
+  <div class="w-full max-w-[95%] xl:max-w-6xl mx-auto px-3 md:px-5">
+    <div class="grid md:grid-cols-2 gap-10 md:gap-14 items-center">
+      <div class="relative aspect-[4/5] max-h-[520px] mx-auto w-full max-w-md overflow-hidden">
+        {% if s.founder_image %}<img src="{{ url_for('static',filename='uploads/'+s.founder_image) }}" class="absolute inset-0 w-full h-full object-cover" alt="">
+        {% else %}<div class="absolute inset-0 bg-grass-soft"></div>{% endif %}
+      </div>
+      <div>
+        <p class="text-sm text-grass-dark font-medium mb-3 tracking-wide uppercase">About the Founder</p>
+        <h2 class="font-display text-3xl md:text-5xl text-slate-900 mb-3">{{ s.founder_name or 'Founder' }}</h2>
+        {% if s.founder_title %}<p class="text-slate-500 text-lg mb-6">{{ s.founder_title }}</p>{% endif %}
+        <p class="text-slate-600 leading-relaxed whitespace-pre-line">{{ s.founder_desc }}</p>
+      </div>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+{% if s.show_testimonials|int %}
+<section id="testimonials" class="py-20 md:py-28 bg-white overflow-hidden">
+  <div class="max-w-[95%] xl:max-w-7xl mx-auto px-3 md:px-5 mb-14 text-center">
+    <h2 class="font-display text-3xl md:text-5xl text-slate-900">What Our Clients Say About Us</h2>
+  </div>
+  {% if testimonials %}
+  <div id="test-wrap" class="marquee-wrap relative w-full cursor-pointer" title="Click to pause/resume">
+    <div id="test-track" class="flex gap-5">
+      {% for item in testimonials %}
+      <div class="test-card shrink-0 w-[300px] sm:w-[340px] md:w-[360px] bg-purple-900 p-8 min-h-[220px] flex flex-col">
+        <h3 class="font-display text-lg text-purple-200 mb-3 leading-snug">{{ item.role or 'Client Review' }}</h3>
+        <p class="text-white/85 text-sm leading-relaxed flex-1 mb-6">"{{ item.content }}"</p>
+        <div class="font-semibold text-white">{{ item.name }}</div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% else %}
+  <p class="text-center text-slate-400 text-sm">No testimonials yet.</p>
+  {% endif %}
+</section>
+{% endif %}
+
+{% if s.show_faqs|int %}
+<section id="faqs" class="bg-white min-h-screen flex items-center py-12 md:py-0">
+  <div class="w-full max-w-[95%] xl:max-w-7xl mx-auto px-3 md:px-5">
+    <div class="grid md:grid-cols-2 gap-8 md:gap-12 items-stretch min-h-[70vh] md:min-h-[80vh]">
+      <div class="relative min-h-[300px] md:min-h-full">
+        {% if s.faq_image %}<img src="{{ url_for('static',filename='uploads/'+s.faq_image) }}" class="absolute inset-0 w-full h-full object-cover" alt="">
+        {% else %}<div class="absolute inset-0 bg-grass-soft"></div>{% endif %}
+      </div>
+      <div class="flex flex-col justify-center py-6">
+        <h2 class="font-display text-3xl md:text-4xl lg:text-5xl text-slate-900 mb-8">{{ s.faq_heading or 'Some General Question?' }}</h2>
+        <div class="space-y-3">
+          {% for f in faqs %}
+          <details class="border border-slate-800 group" {% if loop.first %}open{% endif %}>
+            <summary class="font-medium cursor-pointer list-none flex justify-between items-center gap-4 text-slate-900 px-5 py-4">
+              <span>{{ f.question }}</span>
+              <span class="w-7 h-7 shrink-0 rounded-full bg-slate-900 text-white flex items-center justify-center text-lg leading-none group-open:hidden">+</span>
+              <span class="w-7 h-7 shrink-0 rounded-full bg-slate-900 text-white flex items-center justify-center text-lg leading-none hidden group-open:flex">−</span>
+            </summary>
+            <p class="px-5 pb-4 text-slate-600 text-sm leading-relaxed">{{ f.answer }}</p>
+          </details>
+          {% endfor %}
+        </div>
+        <div class="mt-10">
+          <a href="#consult" class="inline-block bg-grass hover:bg-grass-dark text-white px-8 py-3.5 font-semibold">Book a Consultation</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<section id="consult" class="relative min-h-screen flex items-center overflow-hidden">
+  {% if s.cta_bg %}<img src="{{ url_for('static',filename='uploads/'+s.cta_bg) }}" class="absolute inset-0 w-full h-full object-cover" alt="">
+  {% else %}<div class="absolute inset-0 bg-slate-900"></div>{% endif %}
+  <div class="absolute inset-0 bg-black/55"></div>
+  <div class="relative z-10 w-full max-w-[95%] xl:max-w-7xl mx-auto px-3 md:px-5 py-16 grid md:grid-cols-2 gap-10 items-center">
+    <div class="text-white">
+      <h2 class="font-display text-3xl md:text-5xl leading-tight mb-6">{{ s.form_title }}</h2>
+      <p class="text-white/85 text-base md:text-lg leading-relaxed max-w-xl">{{ s.form_subtitle }}</p>
+    </div>
+    <div class="bg-white p-8 md:p-10 shadow-xl max-w-md md:ml-auto w-full">
+      <h3 class="font-display text-xl md:text-2xl text-slate-900 mb-6 text-center">{{ s.form_heading }}</h3>
+      <form id="consult-form" class="space-y-4">
+        <input name="name" placeholder="Name" required class="w-full border border-slate-300 px-4 py-3 outline-none focus:ring-2 focus:ring-green-500">
+        <input name="phone" placeholder="Phone Number" required class="w-full border border-slate-300 px-4 py-3 outline-none focus:ring-2 focus:ring-green-500">
+        <input name="location" placeholder="Property Location" class="w-full border border-slate-300 px-4 py-3 outline-none focus:ring-2 focus:ring-green-500">
+        <textarea name="message" rows="2" placeholder="Message (optional)" class="w-full border border-slate-300 px-4 py-3 outline-none focus:ring-2 focus:ring-green-500"></textarea>
+        <button type="submit" class="w-full bg-amber-700 hover:bg-amber-800 text-white py-3.5 font-semibold tracking-wide">BOOK NOW</button>
+        <p id="consult-status" class="text-sm text-center hidden"></p>
+      </form>
+    </div>
+  </div>
+</section>
+
+<footer class="text-slate-800 py-14" style="background:#e0f2fe">
+  <div class="max-w-[95%] xl:max-w-7xl mx-auto px-3 md:px-5">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-10 mb-10">
+      <div><div class="font-display text-xl mb-3 text-slate-900">{{ s.company_name }}</div><p class="text-slate-500 text-sm">Luxury landscape design in Dubai.</p></div>
+      <div>
+        <h4 class="font-semibold mb-4 text-sky-700">Contact</h4>
+        <div class="space-y-2 text-sm text-slate-600">
+          {% if s.phone %}<a href="tel:{{ s.phone }}" class="block hover:text-sky-700">{{ s.phone }}</a>{% endif %}
+          {% if s.email %}<a href="mailto:{{ s.email }}" class="block hover:text-sky-700">{{ s.email }}</a>{% endif %}
+          {% if s.whatsapp %}<a href="https://wa.me/{{ s.whatsapp }}?text=Hello%2C%20I%27m%20interested%20in%20your%20landscaping%20services%20in%20Dubai." target="_blank" class="block hover:text-sky-700">WhatsApp</a>{% endif %}
+          {% if s.instagram %}<a href="{{ s.instagram if s.instagram.startswith('http') else 'https://instagram.com/'+s.instagram }}" target="_blank" class="block hover:text-sky-700">Instagram</a>{% endif %}
+          {% if s.facebook %}<a href="{{ s.facebook if s.facebook.startswith('http') else 'https://facebook.com/'+s.facebook }}" target="_blank" class="block hover:text-sky-700">Facebook</a>{% endif %}
+          {% if s.address %}<span class="block">{{ s.address }}</span>{% endif %}
+        </div>
+      </div>
+      <div>
+        <h4 class="font-semibold mb-4 text-sky-700">Pages</h4>
+        <div class="space-y-2 text-sm text-slate-600">
+          <a href="/terms" class="block hover:text-sky-700">Terms of Service</a>
+          <a href="/privacy" class="block hover:text-sky-700">Privacy Policy</a>
+          {% for link in links %}<a href="{{ link.url }}" target="_blank" class="block hover:text-sky-700">{{ link.title }}</a>{% endfor %}
+        </div>
+      </div>
+    </div>
+    {% if s.map_url %}<div class="overflow-hidden mb-8 h-48 border border-sky-200"><iframe src="{{ s.map_url }}" class="w-full h-full border-0" loading="lazy"></iframe></div>{% endif %}
+    <div class="border-t border-sky-200 pt-6 text-center text-slate-500 text-sm">
+      <a href="https://harshilkhandhar.onrender.com" target="_blank" class="text-sky-700 hover:underline font-medium">TechSerenia</a> 2026 All Rights Reserved
+    </div>
+  </div>
+</footer>
+
+<div id="quote-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-4">
+  <div class="bg-white shadow-2xl w-full max-w-md p-6 relative">
+    <button id="close-quote" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 text-2xl">&times;</button>
+    <h3 class="font-display text-2xl text-slate-900 mb-4">Get a Free Quote</h3>
+    <form id="quote-form" class="space-y-3">
+      <input name="name" placeholder="Full Name *" required class="w-full border px-4 py-2.5 outline-none focus:ring-2 focus:ring-green-500">
+      <input name="phone" placeholder="Phone *" required class="w-full border px-4 py-2.5 outline-none focus:ring-2 focus:ring-green-500">
+      <input name="email" type="email" placeholder="Email" class="w-full border px-4 py-2.5 outline-none focus:ring-2 focus:ring-green-500">
+      <input name="location" placeholder="Property Location" class="w-full border px-4 py-2.5 outline-none focus:ring-2 focus:ring-green-500">
+      <textarea name="message" rows="3" placeholder="Project details" class="w-full border px-4 py-2.5 outline-none focus:ring-2 focus:ring-green-500"></textarea>
+      <button type="submit" class="w-full bg-grass hover:bg-grass-dark text-white py-3 font-medium">Send Message</button>
+      <p id="quote-status" class="text-sm text-center hidden"></p>
+    </form>
+  </div>
+</div>
+{% endblock %}
