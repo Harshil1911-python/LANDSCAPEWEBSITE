@@ -7,7 +7,7 @@ document.addEventListener("DOMContentLoaded",()=>{
   const b=document.getElementById("mobile-menu-btn"),m=document.getElementById("mobile-menu");
   if(b&&m)b.onclick=()=>m.classList.toggle("hidden");
   const slides=document.querySelectorAll(".hero-slide");
-  if(slides.length>1){let i=0;setInterval(()=>{slides[i].classList.remove("opacity-100");slides[i].classList.add("opacity-0");i=(i+1)%slides.length;slides[i].classList.remove("opacity-0");slides[i].classList.add("opacity-100");},4000);}
+  if(slides.length>1){let i=0;setInterval(()=>{slides[i].classList.remove("opacity-100");slides[i].classList.add("opacity-0");i=(i+1)%slides.length;slides[i].classList.remove("opacity-0");slides[i].classList.add("opacity-100");},1500);}
   document.addEventListener("keydown",e=>{if(e.key==="F12"||(e.ctrlKey&&e.shiftKey&&["I","J","C"].includes(e.key))||(e.ctrlKey&&e.key==="u"))e.preventDefault();});
 
   const counters=document.querySelectorAll(".counter");
@@ -112,4 +112,32 @@ document.addEventListener("DOMContentLoaded",()=>{
   if(form)form.onsubmit=e=>{e.preventDefault();sendQuote(form,status);};
   const form2=document.getElementById("consult-form"),st2=document.getElementById("consult-status");
   if(form2)form2.onsubmit=e=>{e.preventDefault();sendQuote(form2,st2);};
+
+  function hideLoader(){
+    const L=document.getElementById("page-loader");
+    if(L)L.classList.add("hide");
+  }
+  if(document.readyState==="complete")setTimeout(hideLoader,300);
+  else window.addEventListener("load",()=>setTimeout(hideLoader,300));
+  setTimeout(hideLoader,4000);
+
+  // YouTube click-to-play (avoids embed "video unavailable" until user clicks)
+  document.querySelectorAll(".yt-player").forEach(box=>{
+    const btn=box.querySelector(".yt-play");
+    if(!btn)return;
+    btn.addEventListener("click",()=>{
+      const id=(box.dataset.yt||"").trim();
+      if(!id)return;
+      const ifr=document.createElement("iframe");
+      ifr.className="absolute inset-0 w-full h-full";
+      ifr.src="https://www.youtube-nocookie.com/embed/"+id+"?autoplay=1&rel=0&modestbranding=1";
+      ifr.title="Work video";
+      ifr.setAttribute("allow","accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share");
+      ifr.setAttribute("allowfullscreen","");
+      ifr.setAttribute("referrerpolicy","strict-origin-when-cross-origin");
+      box.innerHTML="";
+      box.appendChild(ifr);
+    });
+  });
+
 });

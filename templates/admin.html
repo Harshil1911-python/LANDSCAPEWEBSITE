@@ -41,6 +41,17 @@
           <input type="file" name="favicon" accept="image/x-icon,image/png,.ico,.png" class="text-sm mt-1 w-full">
           {% if s.favicon %}<p class="text-xs text-slate-500 mt-1">Current: {{ s.favicon }}</p>{% endif %}
         </div>
+        <div class="grid md:grid-cols-2 gap-4">
+          <div>
+            <label class="text-sm font-medium">PWA App Name</label>
+            <input name="pwa_name" value="{{ s.pwa_name or 'atom landscape' }}" class="w-full border rounded-lg px-3 py-2.5 mt-1" placeholder="atom landscape">
+          </div>
+          <div>
+            <label class="text-sm font-medium">PWA App Icon</label>
+            <input type="file" name="pwa_icon" accept="image/png,image/jpeg,.png,.jpg" class="text-sm mt-1 w-full">
+            {% if s.pwa_icon %}<p class="text-xs text-slate-500 mt-1">Current: {{ s.pwa_icon }}</p>{% endif %}
+          </div>
+        </div>
         <div><label class="text-sm font-medium">Hero Title</label><textarea name="hero_title" rows="2" class="w-full border rounded-lg px-3 py-2.5 mt-1">{{ s.hero_title }}</textarea></div>
         <div><label class="text-sm font-medium">Hero Subtitle</label><input name="hero_subtitle" value="{{ s.hero_subtitle }}" class="w-full border rounded-lg px-3 py-2.5 mt-1"></div>
         <div class="grid md:grid-cols-2 gap-4">
@@ -103,7 +114,7 @@
       <form method="POST" class="bg-grass-soft/50 rounded-xl border p-6 space-y-3 max-w-md">
         <input type="hidden" name="action" value="save_settings"><input type="hidden" name="visibility_form" value="1">
         {% for f in ['company_name','hero_title','hero_subtitle','bg_type','whatsapp','phone','email','address','map_url','instagram','facebook','founder_name','founder_title','founder_desc','stat_projects','stat_years','stat_satisfaction','smtp_sender','smtp_app_pass','smtp_receiver','intro_title','intro_text','intro_badge','intro_badge_label'] %}<input type="hidden" name="{{ f }}" value="{{ s[f] }}">{% endfor %}
-        {% for key,label in [('show_intro','About Us'),('show_services','Services'),('show_about','Counters'),('show_gallery','Gallery'),('show_videos','Work Videos'),('show_clients','Prestiged Clients'),('show_founder','Founder'),('show_testimonials','Testimonials'),('show_faqs','FAQs')] %}
+        {% for key,label in [('show_brand_text','Header brand name text'),('show_intro','About Us'),('show_services','Services'),('show_about','Counters'),('show_gallery','Gallery'),('show_videos','Work Videos'),('show_clients','Prestiged Clients'),('show_founder','Founder'),('show_testimonials','Testimonials'),('show_faqs','FAQs')] %}
         <label class="flex items-center gap-3 p-2 rounded cursor-pointer"><input type="checkbox" name="{{ key }}" value="1" {% if s[key]|int %}checked{% endif %} class="w-4 h-4"><span>{{ label }}</span></label>
         {% endfor %}
         <button class="bg-green-600 text-white px-6 py-2.5 rounded-lg text-sm">Save</button>
@@ -152,28 +163,40 @@
         <input type="hidden" name="action" value="add_video">
         <label class="text-sm font-medium">Upload video files</label>
         <input type="file" name="work_videos" accept="video/mp4,video/webm,video/quicktime" multiple class="text-sm w-full" required>
+        <label class="text-sm font-medium">Custom thumbnail (optional)</label>
+        <input type="file" name="thumbnail" accept="image/*" class="text-sm w-full">
         <input name="caption" placeholder="Caption (optional)" class="w-full border rounded-lg px-3 py-2.5">
         <button class="bg-sky-600 text-white px-5 py-2 rounded-lg text-sm">Upload Videos</button>
       </form>
-      <form method="POST" class="bg-grass-soft/50 rounded-xl border p-5 space-y-3 mb-5 max-w-3xl">
+      <form method="POST" enctype="multipart/form-data" class="bg-grass-soft/50 rounded-xl border p-5 space-y-3 mb-5 max-w-3xl">
         <input type="hidden" name="action" value="add_youtube_video">
         <label class="text-sm font-medium">Or add a YouTube link</label>
         <input name="youtube_url" placeholder="https://www.youtube.com/watch?v=..." class="w-full border rounded-lg px-3 py-2.5" required>
+        <label class="text-sm font-medium">Custom thumbnail (optional)</label>
+        <input type="file" name="thumbnail" accept="image/*" class="text-sm w-full">
         <input name="caption" placeholder="Caption (optional)" class="w-full border rounded-lg px-3 py-2.5">
         <button class="bg-red-600 text-white px-5 py-2 rounded-lg text-sm">Add YouTube Video</button>
       </form>
       <div class="grid grid-cols-2 md:grid-cols-3 gap-3 max-w-3xl">
         {% for v in videos %}
         <div class="relative border rounded-xl p-2">
-          {% if v.youtube_id %}
+          {% if v.thumbnail %}
+          <img src="{{ url_for('static',filename='uploads/'+v.thumbnail) }}" class="w-full h-32 object-cover rounded bg-black" alt="">
+          {% elif v.youtube_id %}
           <div class="relative">
-            <img src="https://img.youtube.com/vi/{{ v.youtube_id }}/hqdefault.jpg" class="w-full h-32 object-cover rounded bg-black" alt="">
+            <img src="https://i.ytimg.com/vi/{{ v.youtube_id }}/hqdefault.jpg" class="w-full h-32 object-cover rounded bg-black" alt="">
             <span class="absolute top-1 left-1 bg-red-600 text-white text-[10px] px-1.5 py-0.5 rounded">YouTube</span>
           </div>
           {% else %}
           <video src="{{ url_for('static',filename='uploads/'+v.filename) }}" class="w-full h-32 object-cover rounded bg-black" controls muted playsinline></video>
           {% endif %}
           {% if v.caption %}<p class="text-xs text-slate-500 mt-1 truncate">{{ v.caption }}</p>{% endif %}
+          <form method="POST" enctype="multipart/form-data" class="mt-1 flex flex-col gap-1">
+            <input type="hidden" name="action" value="set_video_thumbnail">
+            <input type="hidden" name="id" value="{{ v.id }}">
+            <input type="file" name="thumbnail" accept="image/*" class="text-xs w-full">
+            <button class="text-sky-600 text-xs text-left">Set thumbnail</button>
+          </form>
           <form method="POST" class="mt-1"><input type="hidden" name="action" value="delete_video"><input type="hidden" name="id" value="{{ v.id }}"><button class="text-red-500 text-xs">Delete</button></form>
         </div>
         {% else %}<p class="text-slate-400">No videos yet.</p>{% endfor %}
@@ -335,16 +358,19 @@
     <div id="panel-database" class="panel hidden">
       <h2 class="font-display text-2xl mb-5">Database</h2>
       <div class="space-y-4 max-w-md">
-        <form method="POST"><input type="hidden" name="action" value="backup_db"><button class="bg-sky-600 text-white px-6 py-2.5 rounded-lg text-sm w-full">Download Backup</button></form>
+        <p class="text-sm text-slate-600">Backup includes database + all photos/videos/icons.</p>
+        <form method="POST"><input type="hidden" name="action" value="backup_db"><button class="bg-sky-600 text-white px-6 py-2.5 rounded-lg text-sm w-full">Download Full Backup (.zip)</button></form>
         <form method="POST" enctype="multipart/form-data" class="border rounded-xl p-4 space-y-2">
           <input type="hidden" name="action" value="restore_db">
-          <input type="file" name="dbfile" accept=".db" class="text-sm w-full" required>
+          <label class="text-sm font-medium">Restore (.zip full or .db only)</label>
+          <input type="file" name="dbfile" accept=".zip,.db" class="text-sm w-full" required>
           <button class="bg-amber-600 text-white px-6 py-2.5 rounded-lg text-sm">Restore</button>
         </form>
-        <form method="POST" class="border border-red-200 rounded-xl p-4 space-y-2 bg-red-50" onsubmit="return confirm('Reset all data?')">
+        <form method="POST" class="border border-red-200 rounded-xl p-4 space-y-2 bg-red-50" onsubmit="return confirm('Reset ALL data? This cannot be undone.')">
           <input type="hidden" name="action" value="delete_db">
-          <input type="password" name="delete_pass" placeholder="Delete password" class="w-full border rounded-lg px-3 py-2.5" required>
-          <button class="bg-red-600 text-white px-6 py-2.5 rounded-lg text-sm">Delete Database</button>
+          <input type="password" name="delete_pass" placeholder="Delete password (or admin pass)" class="w-full border rounded-lg px-3 py-2.5" required>
+          <label class="flex items-center gap-2 text-sm"><input type="checkbox" name="clear_uploads" value="1"> Also delete all uploaded photos</label>
+          <button class="bg-red-600 text-white px-6 py-2.5 rounded-lg text-sm">Delete / Reset Database</button>
         </form>
       </div>
     </div>

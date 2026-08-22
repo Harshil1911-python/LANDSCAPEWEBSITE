@@ -102,11 +102,26 @@
       {% for v in videos %}
       <div class="bg-white overflow-hidden rounded-lg shadow-sm">
         {% if v.youtube_id %}
-        <div class="aspect-video">
-          <iframe class="w-full h-full" src="https://www.youtube.com/embed/{{ v.youtube_id }}" title="{{ v.caption or 'Work video' }}" frameborder="0" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+        <div class="aspect-video relative bg-black yt-player" data-yt="{{ v.youtube_id|trim }}">
+          {% if v.thumbnail %}
+          <img src="{{ url_for('static',filename='uploads/'+v.thumbnail) }}" class="absolute inset-0 w-full h-full object-cover" alt="">
+          {% else %}
+          <img src="https://i.ytimg.com/vi/{{ v.youtube_id|trim }}/hqdefault.jpg" class="absolute inset-0 w-full h-full object-cover" alt="" onerror="this.src='https://i.ytimg.com/vi/{{ v.youtube_id|trim }}/mqdefault.jpg'">
+          {% endif %}
+          <button type="button" class="yt-play absolute inset-0 flex items-center justify-center bg-black/30 hover:bg-black/40 transition" aria-label="Play video">
+            <span class="w-14 h-14 rounded-full bg-red-600 flex items-center justify-center shadow-lg">
+              <svg class="w-6 h-6 text-white ml-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+            </span>
+          </button>
         </div>
         {% else %}
-        <video src="{{ url_for('static',filename='uploads/'+v.filename) }}" class="w-full aspect-video object-cover bg-black" controls muted playsinline preload="metadata"></video>
+        <div class="aspect-video relative bg-black">
+          {% if v.thumbnail %}
+          <video src="{{ url_for('static',filename='uploads/'+v.filename) }}" poster="{{ url_for('static',filename='uploads/'+v.thumbnail) }}" class="w-full h-full object-cover" controls playsinline preload="metadata"></video>
+          {% else %}
+          <video src="{{ url_for('static',filename='uploads/'+v.filename) }}" class="w-full h-full object-cover" controls playsinline preload="metadata"></video>
+          {% endif %}
+        </div>
         {% endif %}
         {% if v.caption %}<p class="text-sm text-slate-600 p-3">{{ v.caption }}</p>{% endif %}
       </div>
@@ -241,7 +256,14 @@
 <footer class="text-slate-800 py-14" style="background:#e0f2fe">
   <div class="max-w-[95%] xl:max-w-7xl mx-auto px-3 md:px-5">
     <div class="grid grid-cols-1 md:grid-cols-3 gap-10 mb-10">
-      <div><div class="font-display text-xl mb-3 text-slate-900">{{ s.company_name }}</div><p class="text-slate-500 text-sm">Luxury landscape design in Dubai.</p></div>
+      <div>
+        <div class="font-display text-xl mb-3 text-slate-900">{{ s.company_name }}</div>
+        <p class="text-slate-500 text-sm leading-relaxed max-w-xs">
+          Expert landscaping, garden design, and outdoor living spaces across Dubai.
+          From villa gardens to poolside oases, we craft green environments that last.
+          Quality workmanship, personal service, and results you can see every day.
+        </p>
+      </div>
       <div>
         <h4 class="font-semibold mb-4 text-sky-700">Contact</h4>
         <div class="space-y-2 text-sm text-slate-600">
