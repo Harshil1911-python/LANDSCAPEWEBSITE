@@ -1,11 +1,35 @@
 document.addEventListener("DOMContentLoaded",()=>{
-  if(document.getElementById("hero-title")){
-    gsap.to("#hero-title",{opacity:1,y:0,duration:1.2,ease:"power3.out",delay:.3});
-    gsap.to("#hero-sub",{opacity:1,y:0,duration:1,ease:"power3.out",delay:.6});
-    gsap.to("#hero-btns",{opacity:1,y:0,duration:1,ease:"power3.out",delay:.9});
-  }
+  try{
+    if(document.getElementById("hero-title")&&typeof gsap!=="undefined"){
+      gsap.to("#hero-title",{opacity:1,y:0,duration:1.2,ease:"power3.out",delay:.3});
+      gsap.to("#hero-sub",{opacity:1,y:0,duration:1,ease:"power3.out",delay:.6});
+      gsap.to("#hero-btns",{opacity:1,y:0,duration:1,ease:"power3.out",delay:.9});
+    }else if(document.getElementById("hero-title")){
+      // GSAP failed to load (e.g. CDN blocked) - just reveal the hero text instantly.
+      ["hero-title","hero-sub","hero-btns"].forEach(id=>{const el=document.getElementById(id);if(el){el.style.opacity=1;el.style.transform="none";}});
+    }
+  }catch(err){console.error("Hero animation failed:",err);}
+
   const b=document.getElementById("mobile-menu-btn"),m=document.getElementById("mobile-menu");
   if(b&&m)b.onclick=()=>m.classList.toggle("hidden");
+
+  // Header background toggles on/off once the user scrolls past the hero section,
+  // and disappears again when scrolled back up into the hero.
+  const header=document.getElementById("site-header");
+  const hero=document.getElementById("home");
+  if(header){
+    function updateHeader(){
+      const heroHeight=hero?hero.offsetHeight:window.innerHeight;
+      if(window.scrollY>heroHeight-header.offsetHeight){
+        header.classList.add("header-scrolled");
+      }else{
+        header.classList.remove("header-scrolled");
+      }
+    }
+    updateHeader();
+    window.addEventListener("scroll",updateHeader,{passive:true});
+    window.addEventListener("resize",updateHeader);
+  }
   const slides=document.querySelectorAll(".hero-slide");
   if(slides.length>1){let i=0;setInterval(()=>{slides[i].classList.remove("opacity-100");slides[i].classList.add("opacity-0");i=(i+1)%slides.length;slides[i].classList.remove("opacity-0");slides[i].classList.add("opacity-100");},1500);}
   document.addEventListener("keydown",e=>{if(e.key==="F12"||(e.ctrlKey&&e.shiftKey&&["I","J","C"].includes(e.key))||(e.ctrlKey&&e.key==="u"))e.preventDefault();});
